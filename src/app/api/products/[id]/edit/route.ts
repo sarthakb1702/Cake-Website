@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function PUT(
   request: NextRequest,
@@ -34,7 +35,7 @@ export async function PUT(
       price = Number(body.price || 0);
       description = body.description || "";
       category = body.category || "";
-      imageUrl = body.image || "";
+      imageUrl = body.image || body.imageUrl || body.photoUrl || body.bannerUrl || "";
     }
 
     const updatedProduct = {
@@ -45,13 +46,21 @@ export async function PUT(
       description,
       category,
       image: imageUrl,
+      imageUrl,
+      photoUrl: imageUrl,
+      bannerUrl: imageUrl,
       updatedAt: new Date().toISOString(),
     };
+
+    revalidatePath("/");
+    revalidatePath("/catalog");
+    revalidatePath("/admin");
 
     return NextResponse.json({
       success: true,
       message: "Product updated successfully",
       product: updatedProduct,
+      imageUrl,
     });
   } catch (error: any) {
     return NextResponse.json(

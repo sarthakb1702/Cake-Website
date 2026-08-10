@@ -4,6 +4,10 @@ export interface BaseProduct {
   name: string;
   description: string;
   image: string;
+  imageUrl?: string;
+  photoUrl?: string;
+  bannerUrl?: string;
+  url?: string;
   isEggless: boolean;
   leadTimeHours?: number;
   price?: number;

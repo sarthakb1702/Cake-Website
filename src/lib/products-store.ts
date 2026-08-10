@@ -52,20 +52,24 @@ export function useProductsStore() {
             const firestoreProducts: Product[] = [];
             snapshot.forEach((docSnap) => {
               const data = docSnap.data();
+              const img = data.image || data.imageUrl || data.photoUrl || data.bannerUrl || data.url || "";
               firestoreProducts.push({
+                ...data,
                 id: docSnap.id,
                 name: data.name || data.title || "Untitled Product",
                 price: Number(data.price) || 0,
                 description: data.description || "",
                 category: data.category || "cake",
-                image: data.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700",
+                image: img || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700",
+                imageUrl: img || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700",
+                photoUrl: img || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700",
+                bannerUrl: img || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700",
                 weights: data.weights || [],
                 shapes: data.shapes || [],
                 weightVariants: data.weightVariants || data.weightOptions || [],
                 weightOptions: data.weightOptions || data.weightVariants || [],
                 availableShapes: data.availableShapes || data.shapes || [],
                 isEggless: true,
-                ...data,
               });
             });
 
@@ -98,9 +102,14 @@ export function useProductsStore() {
 
   const addProduct = async (newProduct: Omit<Product, "id"> & { id?: string }) => {
     const id = newProduct.id || `product-${Date.now()}`;
+    const img = newProduct.image || (newProduct as any).imageUrl || (newProduct as any).photoUrl || (newProduct as any).bannerUrl || "";
     const productToAdd: Product = {
       ...newProduct,
       id,
+      image: img,
+      imageUrl: img,
+      photoUrl: img,
+      bannerUrl: img,
       isEggless: true,
     };
     const current = getStoredProducts();
@@ -116,11 +125,16 @@ export function useProductsStore() {
 
   const updateProduct = async (id: string, updatedFields: Partial<Product>) => {
     const current = getStoredProducts();
-    const updated = current.map((p) => (p.id === id ? { ...p, ...updatedFields } : p));
+    const img = updatedFields.image || (updatedFields as any).imageUrl || (updatedFields as any).photoUrl || (updatedFields as any).bannerUrl;
+    const fieldsToSave = {
+      ...updatedFields,
+      ...(img ? { image: img, imageUrl: img, photoUrl: img, bannerUrl: img } : {}),
+    };
+    const updated = current.map((p) => (p.id === id ? { ...p, ...fieldsToSave } : p));
     saveProducts(updated);
 
     try {
-      await setDoc(doc(db, "products", id), updatedFields, { merge: true });
+      await setDoc(doc(db, "products", id), fieldsToSave, { merge: true });
     } catch (err) {
       console.warn("Firestore updateProduct error:", err);
     }

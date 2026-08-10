@@ -38,6 +38,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const isDonut = category === "donut" || category === "donuts";
   const isFudge = category === "fudge";
 
+  const activeImage =
+    product.image ||
+    product.imageUrl ||
+    product.photoUrl ||
+    product.bannerUrl ||
+    product.url ||
+    "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700";
+
   const selectedVariant = useMemo(() => {
     return activeVariants.find(
       (v) => v.weight.toLowerCase().trim() === selectedWeight.toLowerCase().trim()
@@ -72,7 +80,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         id: product.id,
         name: product.name,
         category: product.category,
-        image: product.image,
+        image: activeImage,
         quantity,
         price: unitPrice,
         totalPrice,
@@ -93,7 +101,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     name: product.name,
     description: product.description,
     category: product.category,
-    image: product.image,
+    image: activeImage,
     price: unitPrice,
     isEggless: true,
     weightVariants: activeVariants,
@@ -104,12 +112,12 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     <>
       <div
         onClick={() => setIsQuickViewOpen(true)}
-        className="group bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md relative min-h-[520px] h-full"
+        className="group bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md relative min-h-[480px] sm:min-h-[520px] h-full"
       >
         {/* Card Header & Image */}
         <div className="relative overflow-hidden h-48 bg-stone-100 border-b border-stone-100 shrink-0">
           <img
-            src={product.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700"}
+            src={activeImage}
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

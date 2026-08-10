@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useProductsStore } from "@/lib/products-store";
@@ -14,12 +15,8 @@ import {
   Package,
   ShoppingBag,
   Trash2,
-  Edit3,
   CheckCircle,
   Image as ImageIcon,
-  DollarSign,
-  Tag,
-  Scale,
   Sparkles,
   Layers,
   RotateCcw,
@@ -51,8 +48,27 @@ interface Order {
   createdAt?: any;
 }
 
-export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"products" | "orders" | "subscribers">("products");
+function AdminDashboardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<"products" | "orders" | "subscribers">(
+    tabParam === "orders" || tabParam === "subscribers" ? tabParam : "products"
+  );
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "orders" || tab === "subscribers" || tab === "products") {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  const changeTab = (tab: "products" | "orders" | "subscribers") => {
+    setActiveTab(tab);
+    router.push(`/admin?tab=${tab}`, { scroll: false });
+  };
+
   const { products, addProduct, updateProduct, deleteProduct, resetToDefault } = useProductsStore();
 
   // Orders State
@@ -169,38 +185,6 @@ export default function AdminDashboard() {
     setShapesInput("Round, Heart, Square");
   };
 
-  const handleEditInit = (product: Product) => {
-    setEditingId(product.id);
-    setName(product.name);
-    setDescription(product.description || "");
-    const cat = product.category || "cake";
-    if (defaultCategories.includes(cat) || customCategoriesInUse.includes(cat)) {
-      setCategory(cat);
-      setCustomCategory("");
-    } else {
-      setCategory("custom");
-      setCustomCategory(cat);
-    }
-    setPrice(product.price || product.weightOptions?.[0]?.price || product.pricePerPiece || 500);
-    setImage(product.image || "");
-
-    if (product.weightOptions && product.weightOptions.length > 0) {
-      setEnableWeight(true);
-      setWeightOptions(product.weightOptions);
-    } else {
-      setEnableWeight(false);
-    }
-
-    if (product.availableShapes && product.availableShapes.length > 0) {
-      setEnableShape(true);
-      setShapesInput(product.availableShapes.join(", "));
-    } else {
-      setEnableShape(false);
-    }
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !description || !image) {
@@ -295,13 +279,13 @@ export default function AdminDashboard() {
               Admin Dashboard
             </h1>
             <p className="text-xs text-muted-foreground mt-1">
-              Manage product uploads, weight & shape variations, and live customer orders.
+              Manage product uploads, weight & shape variations, live customer orders, and email subscribers.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
-              onClick={() => setActiveTab("products")}
+              onClick={() => changeTab("products")}
               className={`flex items-center gap-2 px-5 py-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 activeTab === "products"
                   ? "bg-rose text-white shadow-badge"
@@ -312,7 +296,7 @@ export default function AdminDashboard() {
               Product Catalog ({products.length})
             </button>
             <button
-              onClick={() => setActiveTab("orders")}
+              onClick={() => changeTab("orders")}
               className={`flex items-center gap-2 px-5 py-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 activeTab === "orders"
                   ? "bg-rose text-white shadow-badge"
@@ -323,7 +307,7 @@ export default function AdminDashboard() {
               Live Orders ({orders.length})
             </button>
             <button
-              onClick={() => setActiveTab("subscribers")}
+              onClick={() => changeTab("subscribers")}
               className={`flex items-center gap-2 px-5 py-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 activeTab === "subscribers"
                   ? "bg-rose text-white shadow-badge"
@@ -848,5 +832,13 @@ export default function AdminDashboard() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center text-sm font-bold text-chocolate">Loading Admin Dashboard...</div>}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }

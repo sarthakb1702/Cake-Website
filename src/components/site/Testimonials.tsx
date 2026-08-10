@@ -14,7 +14,7 @@ export function Testimonials() {
   const approvedReviews = reviews.filter((r) => r.approved !== false);
 
   return (
-    <section className="py-24 md:py-32 relative">
+    <section id="reviews" className="py-24 md:py-32 relative">
       <div className="mx-auto max-w-[1400px] px-5 md:px-10 relative">
         {isAdmin && (
           <div className="absolute top-0 right-5 md:right-10 z-30">
@@ -28,8 +28,8 @@ export function Testimonials() {
           licked the plate
         </h2>
 
-        {/* Aligned Reviews Grid Container */}
-        <div className="no-scrollbar mt-12 flex snap-x gap-6 overflow-x-auto pb-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible">
+        {/* Aligned Edge-to-Edge Reviews Carousel */}
+        <div className="w-full overflow-x-auto snap-x snap-mandatory scrollbar-none px-4 sm:px-6 mt-12 flex gap-6 pb-6 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible no-scrollbar -mx-4 sm:-mx-6 md:mx-0">
           {approvedReviews.map((t, i) => (
             <motion.figure
               key={t.id || t.name + i}
@@ -37,7 +37,7 @@ export function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="w-[80vw] shrink-0 snap-start rounded-[2rem] p-8 sm:w-auto bg-blush border border-rose/15 shadow-soft flex flex-col justify-between"
+              className="w-[82vw] sm:w-[320px] md:w-auto shrink-0 snap-start rounded-[2rem] p-8 bg-blush border border-rose/15 shadow-soft flex flex-col justify-between"
             >
               <div>
                 <div className="flex gap-1 text-[#E86A7A]">

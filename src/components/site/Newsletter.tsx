@@ -1,34 +1,120 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { Loader2, CheckCircle2, AlertCircle, Tag } from "lucide-react";
 import { FloatingSparkle } from "./decor";
 
 export function Newsletter() {
+  const { currentUser } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isAlreadyClaimed, setIsAlreadyClaimed] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Check client local storage & user profile on mount
+  useEffect(() => {
+    const checkUserClaimStatus = async () => {
+      const localClaimed = localStorage.getItem("shreyas_discount_claimed") === "true";
+      if (localClaimed) {
+        setIsAlreadyClaimed(true);
+      }
+
+      if (currentUser?.uid) {
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const userSnap = await getDoc(userDocRef);
+          if (userSnap.exists() && userSnap.data()?.discountClaimed) {
+            setIsAlreadyClaimed(true);
+            localStorage.setItem("shreyas_discount_claimed", "true");
+          }
+        } catch (e) {
+          console.warn("Error checking user discount status:", e);
+        }
+      }
+    };
+
+    checkUserClaimStatus();
+  }, [currentUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.trim()) return;
+    const targetEmail = email.trim().toLowerCase();
+    if (!targetEmail) return;
 
     setLoading(true);
     setMessage(null);
 
     try {
-      await addDoc(collection(db, "subscribers"), {
-        email: email.trim(),
+      // 1. Check local storage fallback for specific email
+      if (localStorage.getItem(`discount_claimed_${targetEmail}`) === "true") {
+        setMessage({
+          type: "error",
+          text: "This email has already claimed the 10% discount code!",
+        });
+        setIsAlreadyClaimed(true);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Query Firestore subscribers collection for existing email
+      const subscribersRef = collection(db, "subscribers");
+      const q = query(subscribersRef, where("email", "==", targetEmail));
+      const querySnap = await getDocs(q);
+
+      if (!querySnap.empty) {
+        setMessage({
+          type: "error",
+          text: "This email has already claimed the 10% discount code!",
+        });
+        setIsAlreadyClaimed(true);
+        localStorage.setItem(`discount_claimed_${targetEmail}`, "true");
+        localStorage.setItem("shreyas_discount_claimed", "true");
+        setLoading(false);
+        return;
+      }
+
+      // 3. If user is logged in, check Firestore user profile for discountClaimed flag
+      if (currentUser?.uid) {
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userSnap = await getDoc(userDocRef);
+        if (userSnap.exists() && userSnap.data()?.discountClaimed) {
+          setMessage({
+            type: "error",
+            text: "This account has already claimed the 10% discount code!",
+          });
+          setIsAlreadyClaimed(true);
+          localStorage.setItem("shreyas_discount_claimed", "true");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 4. Save new subscriber document
+      await addDoc(subscribersRef, {
+        email: targetEmail,
         discountCode: "WELCOME10",
+        userId: currentUser?.uid || null,
         createdAt: serverTimestamp(),
       });
 
+      // 5. Update user profile if logged in
+      if (currentUser?.uid) {
+        const userDocRef = doc(db, "users", currentUser.uid);
+        await setDoc(userDocRef, { discountClaimed: true }, { merge: true });
+      }
+
+      // 6. Persist claimed state in local storage
+      localStorage.setItem("shreyas_discount_claimed", "true");
+      localStorage.setItem(`discount_claimed_${targetEmail}`, "true");
+      setIsAlreadyClaimed(true);
+
       setMessage({
         type: "success",
-        text: "Discount code WELCOME10 claimed successfully! Check your inbox.",
+        text: "Discount code WELCOME10 claimed successfully! Use WELCOME10 at checkout.",
       });
       setEmail("");
     } catch (err: any) {
@@ -62,6 +148,13 @@ export function Newsletter() {
           Subscribe for fresh weekend drops, exclusive cake flavors, and sweet surprises.
         </p>
 
+        {isAlreadyClaimed && !message && (
+          <div className="mx-auto mt-6 inline-flex items-center gap-2 rounded-2xl bg-pistachio/50 px-4 py-2.5 text-xs font-extrabold text-chocolate border border-pistachio shadow-xs">
+            <Tag className="h-4 w-4 text-chocolate shrink-0" />
+            <span>Discount Already Claimed — Use Coupon Code <strong>WELCOME10</strong> at Checkout!</span>
+          </div>
+        )}
+
         {message && (
           <div
             className={`mx-auto mt-6 flex max-w-lg items-center justify-center gap-2 rounded-2xl p-4 text-xs font-bold shadow-sm transition-all ${
@@ -92,13 +185,13 @@ export function Newsletter() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
-            placeholder="you@email.com"
+            disabled={loading || isAlreadyClaimed}
+            placeholder={isAlreadyClaimed ? "Discount already claimed" : "you@email.com"}
             className="h-14 flex-1 rounded-full bg-cream-white px-6 text-sm text-ink outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-rose disabled:opacity-60"
           />
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || isAlreadyClaimed}
             className="h-14 rounded-full bg-chocolate px-8 text-sm font-semibold text-cream-white transition-all hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
           >
             {loading ? (
@@ -106,6 +199,8 @@ export function Newsletter() {
                 <Loader2 className="h-4 w-4 animate-spin text-cream-white" />
                 <span>Claiming...</span>
               </>
+            ) : isAlreadyClaimed ? (
+              "Claimed"
             ) : (
               "Claim Discount"
             )}

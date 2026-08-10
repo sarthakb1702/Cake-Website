@@ -63,10 +63,10 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow Shreya's Home Bakery on Instagram"
-                className="flex items-center gap-2.5 rounded-full border border-cream-white/20 bg-chocolate px-4 py-2.5 text-xs font-bold text-cream-white transition-all hover:bg-rose hover:border-rose shadow-soft cursor-pointer"
+                className="flex items-center gap-2.5 rounded-full border border-cream-white/20 bg-chocolate px-4 py-2.5 text-xs font-bold text-cream-white transition-all hover:bg-rose hover:border-rose shadow-soft cursor-pointer max-w-full"
               >
-                <InstagramIcon className="h-4 w-4 text-cream-white" />
-                <span>@shreyas_home_bakery2503</span>
+                <InstagramIcon className="h-4 w-4 text-cream-white shrink-0" />
+                <span className="truncate">@shreyas_home_bakery2503</span>
               </a>
             </div>
           </div>

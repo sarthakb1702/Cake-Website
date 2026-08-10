@@ -20,19 +20,22 @@ export function Gallery() {
           <AdminEditButton href="/admin/gallery" label="Manage Gallery Images" />
         </div>
       )}
-      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end max-w-full overflow-hidden">
         <a
           href={INSTAGRAM_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer"
+          className="group flex flex-wrap items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer max-w-full"
         >
-          <h2 className="font-display text-[clamp(1.9rem,3.6vw,3rem)] leading-tight font-black uppercase text-chocolate">
-            Follow us <span className="text-rose group-hover:underline">@SHREYAS_HOME_BAKERY2503</span>
+          <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl leading-tight font-black uppercase text-chocolate break-words max-w-full">
+            Follow us{" "}
+            <span className="text-rose group-hover:underline break-all inline-block max-w-full">
+              @SHREYAS_HOME_BAKERY2503
+            </span>
             <Sparkle className="mb-2 ml-2 inline h-6 w-6 text-butter" />
           </h2>
         </a>
-        <p className="text-sm text-muted-foreground">Fresh bakes daily, handcrafted in small batches.</p>
+        <p className="text-sm text-muted-foreground shrink-0">Fresh bakes daily, handcrafted in small batches.</p>
       </div>
 
       <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">

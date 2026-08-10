@@ -38,6 +38,18 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Prevent background page scrolling when mobile menu drawer is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [open]);
+
   const handleMyOrdersClick = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     if (!currentUser) {
@@ -76,9 +88,9 @@ export function Navbar() {
   };
 
   const adminLinks = [
-    { name: "Manage Products", href: "/admin" },
-    { name: "Orders", href: "/admin" },
-    { name: "Subscribers", href: "/admin" },
+    { name: "Manage Products", href: "/admin?tab=products" },
+    { name: "Orders", href: "/admin?tab=orders" },
+    { name: "Subscribers", href: "/admin?tab=subscribers" },
     { name: "View Storefront", href: "/" },
   ];
 
@@ -220,7 +232,7 @@ export function Navbar() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-50 bg-blush px-6 py-6 lg:hidden flex flex-col justify-between"
+            className="fixed inset-0 w-screen h-screen z-[999] bg-blush px-6 py-6 lg:hidden flex flex-col justify-between overflow-y-auto"
           >
             <div className="flex items-center justify-between">
               <span className="font-display text-2xl font-black text-chocolate">
@@ -230,7 +242,7 @@ export function Navbar() {
                 type="button"
                 aria-label="Close menu"
                 onClick={() => setOpen(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-cream-white text-chocolate"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-cream-white text-chocolate cursor-pointer hover:bg-white transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -301,7 +313,7 @@ export function Navbar() {
                     handleLogout();
                     setOpen(false);
                   }}
-                  className="block w-full text-center rounded-full bg-chocolate py-4 font-semibold text-cream-white flex items-center justify-center gap-2"
+                  className="block w-full text-center rounded-full bg-chocolate py-4 font-semibold text-cream-white flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <LogOut className="h-4 w-4" /> Sign Out Admin
                 </button>

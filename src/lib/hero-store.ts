@@ -10,8 +10,10 @@ export interface HeroSlide {
   note: string; // Sub-description
   price: string; // Price tag e.g. "₹950"
   image: string; // Slide image URL
-  imageUrl?: string; // Optional field key alias
-  bannerUrl?: string; // Optional field key alias
+  imageUrl?: string; // Database key alias
+  photoUrl?: string; // Database key alias
+  slideImagePhoto?: string; // Database key alias
+  bannerUrl?: string; // Database key alias
   mainTitle?: string; // Main title e.g. "Life's too short to eat boring cake"
   subDescription?: string; // Hero section sub-description text
 }
@@ -24,6 +26,8 @@ export const INITIAL_HERO_SLIDES: HeroSlide[] = [
     price: "₹950",
     image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80",
     imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80",
+    slideImagePhoto: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80",
     mainTitle: "Life's too short to eat boring cake",
     subDescription: "Small-batch 100% eggless cakes baked at dawn, finished by hand, and delivered to your door. No shortcuts, no dry sponge, ever.",
   },
@@ -34,6 +38,8 @@ export const INITIAL_HERO_SLIDES: HeroSlide[] = [
     price: "₹1,050",
     image: "https://images.unsplash.com/photo-1586788680404-32824795b6b3?auto=format&fit=crop&w=1100&q=80",
     imageUrl: "https://images.unsplash.com/photo-1586788680404-32824795b6b3?auto=format&fit=crop&w=1100&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1586788680404-32824795b6b3?auto=format&fit=crop&w=1100&q=80",
+    slideImagePhoto: "https://images.unsplash.com/photo-1586788680404-32824795b6b3?auto=format&fit=crop&w=1100&q=80",
     mainTitle: "Handcrafted crimson velvet perfection",
     subDescription: "Baked fresh with pure cream cheese frosting and organic vanilla bean extract.",
   },
@@ -44,6 +50,8 @@ export const INITIAL_HERO_SLIDES: HeroSlide[] = [
     price: "₹420",
     image: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=1100&q=80",
     imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=1100&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=1100&q=80",
+    slideImagePhoto: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=1100&q=80",
     mainTitle: "Soft, pillowy & chocolate coated bliss",
     subDescription: "Signature 100% eggless artisan donuts glazed in dark and milk chocolate.",
   },
@@ -54,6 +62,8 @@ export const INITIAL_HERO_SLIDES: HeroSlide[] = [
     price: "₹580",
     image: "https://images.unsplash.com/photo-1548848221-0c2e497ed557?auto=format&fit=crop&w=1100&q=80",
     imageUrl: "https://images.unsplash.com/photo-1548848221-0c2e497ed557?auto=format&fit=crop&w=1100&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1548848221-0c2e497ed557?auto=format&fit=crop&w=1100&q=80",
+    slideImagePhoto: "https://images.unsplash.com/photo-1548848221-0c2e497ed557?auto=format&fit=crop&w=1100&q=80",
     mainTitle: "Slow cooked rich dark chocolate fudge",
     subDescription: "Kettle cooked in small batches using single origin 70% dark cocoa.",
   },
@@ -102,8 +112,20 @@ export function useHeroStore() {
           if (snap.exists()) {
             const data = snap.data();
             if (Array.isArray(data.slides) && data.slides.length > 0) {
-              setSlides(data.slides);
-              saveHeroSlides(data.slides);
+              // Ensure every slide maps all image schema keys
+              const mappedSlides: HeroSlide[] = data.slides.map((s: any) => {
+                const img = s.imageUrl || s.photoUrl || s.slideImagePhoto || s.image || s.bannerUrl || "";
+                return {
+                  ...s,
+                  image: img,
+                  imageUrl: img,
+                  photoUrl: img,
+                  slideImagePhoto: img,
+                  bannerUrl: img,
+                };
+              });
+              setSlides(mappedSlides);
+              saveHeroSlides(mappedSlides);
             }
           }
         },
@@ -134,12 +156,23 @@ export function useHeroStore() {
     const current = getStoredHeroSlides();
     const updated = current.map((s) => {
       if (s.id === id) {
-        const img = updatedFields.image || updatedFields.imageUrl || updatedFields.bannerUrl || s.image;
+        const img =
+          updatedFields.imageUrl ||
+          updatedFields.photoUrl ||
+          updatedFields.slideImagePhoto ||
+          updatedFields.image ||
+          updatedFields.bannerUrl ||
+          s.imageUrl ||
+          s.photoUrl ||
+          s.slideImagePhoto ||
+          s.image;
         return {
           ...s,
           ...updatedFields,
           image: img,
           imageUrl: img,
+          photoUrl: img,
+          slideImagePhoto: img,
           bannerUrl: img,
         };
       }

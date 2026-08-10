@@ -24,8 +24,10 @@ export function HeroEditModal({ slide, isOpen, onClose }: HeroEditModalProps) {
   const [note, setNote] = useState(slide.note);
   const [price, setPrice] = useState(slide.price);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState(slide.image);
-  const [imageUrlInput, setImageUrlInput] = useState(slide.image);
+
+  const initialImage = slide.imageUrl || slide.photoUrl || slide.slideImagePhoto || slide.image || slide.bannerUrl || "";
+  const [imagePreview, setImagePreview] = useState(initialImage);
+  const [imageUrlInput, setImageUrlInput] = useState(initialImage);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -41,8 +43,9 @@ export function HeroEditModal({ slide, isOpen, onClose }: HeroEditModalProps) {
       setBadgeTitle(slide.name || "");
       setNote(slide.note || "");
       setPrice(slide.price || "");
-      setImagePreview(slide.image || "");
-      setImageUrlInput(slide.image || "");
+      const img = slide.imageUrl || slide.photoUrl || slide.slideImagePhoto || slide.image || slide.bannerUrl || "";
+      setImagePreview(img);
+      setImageUrlInput(img);
       setImageFile(null);
     }
   }, [slide, isOpen]);
@@ -69,7 +72,7 @@ export function HeroEditModal({ slide, isOpen, onClose }: HeroEditModalProps) {
     setError(null);
     setSuccess(false);
 
-    const finalImage = imagePreview || imageUrlInput || slide.image;
+    const finalImage = imagePreview || imageUrlInput || slide.imageUrl || slide.image;
 
     try {
       const formData = new FormData();
@@ -104,6 +107,10 @@ export function HeroEditModal({ slide, isOpen, onClose }: HeroEditModalProps) {
         mainTitle,
         subDescription,
         image: updatedImageUrl,
+        imageUrl: updatedImageUrl,
+        photoUrl: updatedImageUrl,
+        slideImagePhoto: updatedImageUrl,
+        bannerUrl: updatedImageUrl,
       });
 
       setSuccess(true);
@@ -120,6 +127,10 @@ export function HeroEditModal({ slide, isOpen, onClose }: HeroEditModalProps) {
         mainTitle,
         subDescription,
         image: finalImage,
+        imageUrl: finalImage,
+        photoUrl: finalImage,
+        slideImagePhoto: finalImage,
+        bannerUrl: finalImage,
       });
       setSuccess(true);
       setTimeout(() => {

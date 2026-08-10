@@ -23,11 +23,19 @@ export function Hero() {
     note: "Rich, smooth 100% eggless Belgian chocolate layered with dark cocoa sponge.",
     price: "₹950",
     image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80",
+    imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80",
+    slideImagePhoto: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80",
     mainTitle: "Life's too short to eat boring cake",
     subDescription: "Small-batch 100% eggless cakes baked at dawn, finished by hand, and delivered to your door.",
   };
 
-  const activeImage = slide.image || slide.imageUrl || slide.bannerUrl || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80";
+  const activeImage =
+    slide.imageUrl ||
+    slide.photoUrl ||
+    slide.slideImagePhoto ||
+    slide.image ||
+    slide.bannerUrl;
 
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 600], [0, -60]);

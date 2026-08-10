@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "motion/react";
 import { ArrowLeft, ArrowRight, Truck } from "lucide-react";
-import { FloatingSparkle, Sparkle } from "./decor";
+import { FloatingSparkle } from "./decor";
 import { useHeroStore } from "@/lib/hero-store";
 import { useAuth } from "@/context/AuthContext";
 import { AdminEditButton } from "@/components/AdminEditButton";
@@ -26,6 +26,8 @@ export function Hero() {
     mainTitle: "Life's too short to eat boring cake",
     subDescription: "Small-batch 100% eggless cakes baked at dawn, finished by hand, and delivered to your door.",
   };
+
+  const activeImage = slide.image || slide.imageUrl || slide.bannerUrl || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1100&q=80";
 
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 600], [0, -60]);
@@ -97,12 +99,12 @@ export function Hero() {
           <FloatingSparkle className="bottom-24 left-2 text-rose" delay={0.2} />
 
           <motion.img
-            key={slide.image}
+            key={activeImage}
             style={{ y }}
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            src={slide.image}
+            src={activeImage}
             alt={`${slide.name} artisan bake by Shreya's Home Bakery`}
             loading="eager"
             className="relative z-10 mx-auto aspect-[4/5] w-[76%] rounded-[3rem] object-cover shadow-lift"

@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Hero } from "../components/site/Hero";
 import { StatsStrip } from "../components/site/StatsStrip";
@@ -12,6 +10,9 @@ import { Testimonials } from "../components/site/Testimonials";
 import { Gallery } from "../components/site/Gallery";
 import { Newsletter } from "../components/site/Newsletter";
 import { Footer } from "../components/site/Footer";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default function HomePage() {
   return (

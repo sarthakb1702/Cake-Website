@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -59,7 +60,7 @@ export async function PUT(request: NextRequest) {
       price = body.price || "";
       mainTitle = body.mainTitle || "";
       subDescription = body.subDescription || "";
-      imageUrl = body.image || "";
+      imageUrl = body.image || body.imageUrl || body.bannerUrl || "";
     }
 
     const updatedSlide = {
@@ -70,8 +71,13 @@ export async function PUT(request: NextRequest) {
       mainTitle,
       subDescription,
       image: imageUrl,
+      imageUrl,
+      bannerUrl: imageUrl,
       updatedAt: new Date().toISOString(),
     };
+
+    revalidatePath("/");
+    revalidatePath("/admin");
 
     return NextResponse.json({
       success: true,

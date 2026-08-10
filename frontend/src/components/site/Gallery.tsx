@@ -1,5 +1,4 @@
 import { motion } from "motion/react";
-import { Heart } from "lucide-react";
 import { gallery } from "@/lib/site-data";
 import { Sparkle } from "./decor";
 
@@ -16,9 +15,8 @@ export function Gallery() {
 
       <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {gallery.map((src, i) => (
-          <motion.a
+          <motion.div
             key={src + i}
-            href="#"
             initial={{ opacity: 0, scale: 0.94 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, amount: 0.2 }}
@@ -31,11 +29,8 @@ export function Gallery() {
               loading="lazy"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
-            <span className="absolute inset-0 flex items-center justify-center gap-2 bg-chocolate/55 text-sm font-semibold text-cream-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-              <Heart className="h-4 w-4 fill-current" />
-              {320 + i * 47}
-            </span>
-          </motion.a>
+            <span className="absolute inset-0 bg-chocolate/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          </motion.div>
         ))}
       </div>
     </section>

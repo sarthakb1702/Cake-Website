@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useCart } from "../context/CartContext";
-import { auth } from "../lib/firebase";
+import { useAuth } from "../context/AuthContext";
 import type { Product } from "../types";
+import { Edit3 } from "lucide-react";
 
 interface ProductDetailViewProps {
   product: Product;
@@ -12,46 +14,74 @@ interface ProductDetailViewProps {
 
 export const ProductDetailView = ({ product }: ProductDetailViewProps) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { addToCart } = useCart();
-  const [selectedWeight, setSelectedWeight] = useState("0.5 kg");
-  const [selectedShape, setSelectedShape] = useState("Circle");
+  const { currentUser, userRole } = useAuth();
+  const activeVariants = useMemo(() => {
+    if (product.weightVariants && product.weightVariants.length > 0) return product.weightVariants;
+    if (product.weightOptions && product.weightOptions.length > 0) return product.weightOptions;
+    if (product.weights && product.weights.length > 0) {
+      return product.weights.map((w) => ({ weight: w, price: product.price || 300 }));
+    }
+    if (product.category === "fudge") {
+      const p = product.price || 300;
+      return [
+        { weight: "250g", price: p },
+        { weight: "500g", price: Math.round(p * 1.8) },
+        { weight: "750g", price: Math.round(p * 2.6) },
+        { weight: "1kg", price: Math.round(p * 3.4) },
+      ];
+    }
+    const baseP = product.price || 500;
+    return [
+      { weight: "0.5 kg", price: baseP },
+      { weight: "1 kg", price: Math.round(baseP * 1.8) },
+      { weight: "1.5 kg", price: Math.round(baseP * 2.6) },
+      { weight: "2 kg", price: Math.round(baseP * 3.4) },
+    ];
+  }, [product]);
+
+  const availableWeights = useMemo(() => activeVariants.map((v) => v.weight), [activeVariants]);
+
+  const availableShapes = useMemo(() => {
+    if (product.shapes && product.shapes.length > 0) return product.shapes;
+    if (product.availableShapes && product.availableShapes.length > 0) return product.availableShapes;
+    return ["Round", "Heart", "Square"];
+  }, [product.shapes, product.availableShapes]);
+
+  const [selectedWeight, setSelectedWeight] = useState(availableWeights[0] || "0.5 kg");
+  const [selectedShape, setSelectedShape] = useState(availableShapes[0] || "Round");
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const hideEcommerce = userRole === "admin" || pathname?.startsWith("/admin");
 
   const isCake = product.category === "cake";
   const isDonut = product.category === "donut";
   const isFudge = product.category === "fudge";
 
+  const selectedVariant = useMemo(() => {
+    return activeVariants.find(
+      (v) => v.weight.toLowerCase().trim() === selectedWeight.toLowerCase().trim()
+    ) || activeVariants[0];
+  }, [activeVariants, selectedWeight]);
+
   const unitPrice = useMemo(() => {
-    if (isCake) {
-      const weightMultipliers: Record<string, number> = {
-        "0.5 kg": 1,
-        "1 kg": 1.8,
-        "1.5 kg": 2.6,
-        "2 kg": 3.4,
-      };
-      const basePrice = product.weightOptions[0].price;
-      return Math.round(basePrice * (weightMultipliers[selectedWeight] || 1));
-    }
-
     if (isDonut) {
-      return quantity >= 6 ? 50 : product.pricePerPiece;
+      return quantity >= 6 ? 50 : (product.pricePerPiece || product.price || 70);
     }
-
-    return product.weightOptions[0].price;
-  }, [isCake, isDonut, product, quantity, selectedWeight]);
+    return selectedVariant?.price || product.price || 300;
+  }, [isDonut, product, quantity, selectedVariant]);
 
   const totalPrice = useMemo(() => {
-    if (isCake) return unitPrice * quantity;
-    if (isDonut) return unitPrice * quantity;
     return unitPrice * quantity;
-  }, [isCake, isDonut, quantity, unitPrice]);
+  }, [quantity, unitPrice]);
 
   const handleAddToCart = async () => {
     setNotice(null);
 
-    if (!auth.currentUser) {
+    if (!currentUser) {
       setNotice("Please sign in to add items to your cart.");
       router.push("/login");
       return;
@@ -62,9 +92,7 @@ export const ProductDetailView = ({ product }: ProductDetailViewProps) => {
       const added = await addToCart({
         cartId: isCake
           ? `${product.id}-${selectedWeight}-${selectedShape}`
-          : isDonut
-            ? `${product.id}-donut`
-            : `${product.id}-fudge`,
+          : `${product.id}-${selectedWeight}`,
         id: product.id,
         name: product.name,
         category: product.category,
@@ -72,11 +100,12 @@ export const ProductDetailView = ({ product }: ProductDetailViewProps) => {
         quantity,
         price: unitPrice,
         totalPrice,
-        ...(isCake ? { selectedWeight, selectedShape } : {}),
+        selectedWeight,
+        ...(isCake ? { selectedShape } : {}),
       });
 
       if (added) {
-        setNotice(`Added ${product.name} to your cart.`);
+        setNotice(`Added ${product.name} (${selectedWeight}) to your cart.`);
       }
     } finally {
       setIsAdding(false);
@@ -94,47 +123,51 @@ export const ProductDetailView = ({ product }: ProductDetailViewProps) => {
           <p className="text-sm leading-6 text-stone-600">{product.description}</p>
         </div>
 
-        {isCake && (
+        {(isCake || isFudge) && (
           <div className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-stone-700">Weight</label>
-              <div className="flex flex-wrap gap-2">
-                {product.weightOptions.map((option) => (
-                  <button
-                    key={option.weight}
-                    type="button"
-                    onClick={() => setSelectedWeight(option.weight)}
-                    className={`rounded-full border px-3 py-2 text-sm font-semibold ${
-                      selectedWeight === option.weight
-                        ? "border-amber-600 bg-amber-600 text-white"
-                        : "border-stone-200 bg-stone-50 text-stone-700"
-                    }`}
-                  >
-                    {option.weight}
-                  </button>
-                ))}
+            {activeVariants.length > 0 && (
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-stone-700">Weight Variant</label>
+                <div className="flex flex-wrap gap-2">
+                  {activeVariants.map((v) => (
+                    <button
+                      key={v.weight}
+                      type="button"
+                      onClick={() => setSelectedWeight(v.weight)}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                        selectedWeight === v.weight
+                          ? "border-amber-600 bg-amber-600 text-white"
+                          : "border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100"
+                      }`}
+                    >
+                      {v.weight} {v.price > 0 && `(₹${v.price})`}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-stone-700">Shape</label>
-              <div className="flex flex-wrap gap-2">
-                {product.availableShapes.map((shape) => (
-                  <button
-                    key={shape}
-                    type="button"
-                    onClick={() => setSelectedShape(shape)}
-                    className={`rounded-full border px-3 py-2 text-sm font-semibold ${
-                      selectedShape === shape
-                        ? "border-amber-600 bg-amber-600 text-white"
-                        : "border-stone-200 bg-stone-50 text-stone-700"
-                    }`}
-                  >
-                    {shape}
-                  </button>
-                ))}
+            {isCake && availableShapes.length > 0 && (
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-stone-700">Shape</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableShapes.map((shape) => (
+                    <button
+                      key={shape}
+                      type="button"
+                      onClick={() => setSelectedShape(shape)}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                        selectedShape === shape
+                          ? "border-amber-600 bg-amber-600 text-white"
+                          : "border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100"
+                      }`}
+                    >
+                      {shape}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -161,28 +194,26 @@ export const ProductDetailView = ({ product }: ProductDetailViewProps) => {
           </div>
         )}
 
-        {isFudge && (
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-stone-700">Pack Quantity</label>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="rounded-lg border border-stone-200 px-3 py-2 text-lg font-semibold text-stone-700"
-              >
-                -
-              </button>
-              <span className="min-w-10 text-center text-lg font-black text-stone-900">{quantity}</span>
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => q + 1)}
-                className="rounded-lg border border-stone-200 px-3 py-2 text-lg font-semibold text-stone-700"
-              >
-                +
-              </button>
-            </div>
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-stone-700">Pack Quantity</label>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="rounded-lg border border-stone-200 px-3 py-2 text-lg font-semibold text-stone-700"
+            >
+              -
+            </button>
+            <span className="min-w-10 text-center text-lg font-black text-stone-900">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => q + 1)}
+              className="rounded-lg border border-stone-200 px-3 py-2 text-lg font-semibold text-stone-700"
+            >
+              +
+            </button>
           </div>
-        )}
+        </div>
 
         <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
           <div className="flex items-center justify-between">
@@ -190,14 +221,25 @@ export const ProductDetailView = ({ product }: ProductDetailViewProps) => {
               <p className="text-sm text-stone-500">Price</p>
               <p className="text-2xl font-black text-stone-900">₹{totalPrice}</p>
             </div>
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={isAdding}
-              className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isAdding ? "Adding..." : "Add to Cart"}
-            </button>
+
+            {!hideEcommerce ? (
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={isAdding}
+                className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isAdding ? "Adding..." : "Add to Cart"}
+              </button>
+            ) : (
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-4 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-200 transition-colors"
+              >
+                <Edit3 className="h-4 w-4" />
+                Manage Product
+              </Link>
+            )}
           </div>
           {notice && <p className="mt-3 text-sm text-amber-700">{notice}</p>}
         </div>

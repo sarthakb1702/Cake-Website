@@ -68,30 +68,34 @@ export function HandUnderline({ className }: { className?: string }) {
 }
 
 export function RotatingStamp({ className }: { className?: string }) {
-  const text = "FRESH DAILY • HANDCRAFTED • SMALL BATCH • ";
+  const text = "HANDCRAFTED • FRESH CAKES DAILY • HANDCRAFTED • FRESH CAKES DAILY • ";
   return (
-    <motion.div
+    <div
       className={cn("relative h-20 w-20 shrink-0", className)}
-      animate={{ rotate: 360 }}
-      transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
       aria-hidden="true"
     >
-      <svg viewBox="0 0 100 100" className="h-full w-full">
+      <svg
+        viewBox="0 0 100 100"
+        className="h-full w-full animate-spin"
+        style={{ animationDuration: "14s" }}
+      >
         <defs>
           <path id="stampCircle" d="M50,50 m-36,0 a36,36 0 1,1 72,0 a36,36 0 1,1 -72,0" />
         </defs>
         <circle cx="50" cy="50" r="47" fill="currentColor" opacity="0.1" />
         <text
           className="fill-current"
-          style={{ fontSize: "9.2px", letterSpacing: "0.06em", fontWeight: 600 }}
+          style={{ fontSize: "6.8px", letterSpacing: "0.03em", fontWeight: 700 }}
         >
-          <textPath href="#stampCircle">{text}</textPath>
+          <textPath href="#stampCircle" textLength="226" lengthAdjust="spacing">
+            {text}
+          </textPath>
         </text>
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <Sparkle className="h-5 w-5" />
       </div>
-    </motion.div>
+    </div>
   );
 }
 

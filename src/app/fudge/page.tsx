@@ -1,32 +1,48 @@
+"use client";
+
 import React from "react";
-import { FudgeCard } from "../../components/FudgeCard";
-import { PRODUCTS } from "../../data/products";
+import { useProductsStore } from "@/lib/products-store";
+import { FudgeCard } from "@/components/FudgeCard";
 
 export default function FudgePage() {
-  const fudges = PRODUCTS.filter((p) => p.category === "fudge");
+  const { products } = useProductsStore();
+
+  const fudges = products.filter((p) => p.category?.toLowerCase() === "fudge");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
-      <div className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-600">Fudge</p>
-        <h1 className="text-3xl font-extrabold text-stone-900">Rich, Dense Fudge Boxes</h1>
-      </div>
+    <div className="min-h-screen bg-cream px-5 py-12 md:px-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-8">
+          <span className="inline-block rounded-full bg-secondary px-3.5 py-1 text-[11px] font-bold tracking-wider text-chocolate uppercase">
+            Artisan Confections
+          </span>
+          <h1 className="font-display text-4xl font-black uppercase text-chocolate mt-2">Slow-Cooked Dark Fudge</h1>
+          <p className="text-xs text-muted-foreground mt-1">Dense, velvety dark chocolate fudge cooked slowly in copper kettles.</p>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {fudges.length === 0 ? (
-          <p className="text-sm text-gray-500">No fudge available at the moment.</p>
-        ) : (
-          fudges.map((product) => (
-            <FudgeCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              image={product.image}
-              description={product.description}
-              pricePer250g={product.weightOptions?.[0]?.price ?? 0}
-            />
-          ))
-        )}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {fudges.map((product) => {
+            const price =
+              product.price ||
+              product.weightVariants?.[0]?.price ||
+              product.weightOptions?.[0]?.price ||
+              300;
+            return (
+              <FudgeCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                image={product.image}
+                description={product.description}
+                price={price}
+                pricePer250g={price}
+                weightVariants={product.weightVariants}
+                weightOptions={product.weightOptions}
+                weights={product.weights}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );

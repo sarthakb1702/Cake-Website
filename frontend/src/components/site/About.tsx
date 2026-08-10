@@ -47,9 +47,7 @@ export function About() {
           </h2>
           <div className="mt-8 max-w-lg space-y-4 text-sm leading-relaxed text-muted-foreground">
             <p>
-              Crumb & Co. started in 2016 in a rented kitchen with two ovens, one whisk and a
-              refusal to use anything from a box. Ten years later we still weigh butter by hand and
-              still throw out anything that isn&apos;t worth the calories.
+              Shreya's Home Bakery started with two ovens, pure butter, 100% eggless recipes, and a refusal to use anything artificial.
             </p>
             <p>
               Our fruit comes from the market three blocks away. Our chocolate is single origin. Our
@@ -58,9 +56,8 @@ export function About() {
           </div>
           <div className="mt-9 flex gap-10">
             {[
-              ["2016", "Founded"],
-              ["18", "Bakers"],
-              ["42k", "Cakes served"],
+              ["2018", "Founded"],
+              ["500+", "Cakes served"],
             ].map(([v, l]) => (
               <div key={l}>
                 <p className="font-display text-3xl font-black">{v}</p>

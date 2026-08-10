@@ -39,17 +39,8 @@ export function Testimonials() {
             <blockquote className="mt-5 font-display text-lg leading-snug font-semibold text-chocolate">
               “{t.quote}”
             </blockquote>
-            <figcaption className="mt-7 flex items-center gap-3">
-              <img
-                src={t.avatar}
-                alt={t.name}
-                loading="lazy"
-                className="h-11 w-11 rounded-full object-cover"
-              />
-              <div>
-                <p className="text-sm font-semibold text-chocolate">{t.name}</p>
-                <p className="text-[11px] tracking-wide text-chocolate/60 uppercase">{t.role}</p>
-              </div>
+            <figcaption className="mt-7">
+              <p className="text-sm font-bold text-chocolate">{t.name}</p>
             </figcaption>
           </motion.figure>
         ))}

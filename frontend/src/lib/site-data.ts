@@ -26,7 +26,6 @@ export const stats = [
   { label: "100% Fresh Ingredients", icon: "leaf" },
   { label: "500+ Cakes Baked Weekly", icon: "cake" },
   { label: "Same-Day Delivery", icon: "truck" },
-  { label: "4.9 / 5 From 2.4k Reviews", icon: "star" },
 ];
 
 export const bestsellers = [
@@ -96,33 +95,25 @@ export const testimonials = [
   {
     quote:
       "The Velvet Bloom disappeared in eleven minutes. Eleven. My family has no manners and excellent taste.",
-    name: "Amara Okafor",
-    role: "Birthday order",
-    avatar: img("1494790108377-be9c29b29330", 200),
+    name: "Ananya Sharma",
     tone: "blush" as const,
   },
   {
     quote:
       "We ordered the two-tier for our engagement party. It looked like sculpture and tasted like a memory.",
-    name: "Daniel Reyes",
-    role: "Custom cake",
-    avatar: img("1500648767791-00dcc994a43e", 200),
+    name: "Rahul Verma",
     tone: "butter" as const,
   },
   {
     quote:
       "Same-day delivery actually meant same day. The box arrived cold, perfect, tied with a ribbon.",
-    name: "Sofia Lind",
-    role: "Weekly regular",
-    avatar: img("1534528741775-53994a69daeb", 200),
+    name: "Priya Patel",
     tone: "pistachio" as const,
   },
   {
     quote:
       "I have opinions about pistachio. Crumb & Co. changed all of them. The rosé is unreal.",
-    name: "Marcus Hale",
-    role: "Pastry club",
-    avatar: img("1507003211169-0a1dd7228f2d", 200),
+    name: "Rohan Mehta",
     tone: "blush" as const,
   },
 ];
@@ -130,10 +121,10 @@ export const testimonials = [
 export const gallery = [
   img("1563729784474-d77dbb933a9e", 500),
   img("1578985545062-69928b1d9587", 500),
-  img("1499636136210-6f4ee915583e", 500),
+  "https://cdn.britannica.com/38/230838-050-D0173E79/doughnuts-donuts.jpg",
   img("1486427944299-d1955d23e34d", 500),
-  img("1519915028121-7d3463d20b13", 500),
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJCY36e75HGOrNYv4OuI3qKlRyYfZAxrfTvDuJyLm3eKkxUxFFkEIreTwPfr9_82gg&s=10&ec=121924526",
   img("1464349095431-e9a21285b5f3", 500),
   img("1535141192574-5d4897c12636", 500),
-  img("1509440159596-0249088772ff", 500),
+  "https://www.allrecipes.com/thmb/oCiRTxuhtm7mFnaVwyczUlUgqSk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/9368-fudge-mfs226-84cd00477cde46b384ea47f4ade8035a.jpg",
 ];

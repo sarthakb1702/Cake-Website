@@ -1,24 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signInWithPopup, 
   GoogleAuthProvider 
 } from "firebase/auth";
-import { auth } from "../../lib/firebase";
+import { auth } from "@/lib/firebase";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams?.get("redirect") || "/";
+
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Helper function to convert Firebase error codes into human-readable messages
   const getErrorMessage = (code: string) => {
     switch (code) {
       case "auth/invalid-credential":
@@ -30,7 +32,7 @@ export default function LoginPage() {
       case "auth/weak-password":
         return "Password should be at least 6 characters long.";
       case "auth/operation-not-allowed":
-        return "Email/Password sign-in is disabled in Firebase Console. Please enable it in Authentication > Sign-in method.";
+        return "Email/Password sign-in is disabled in Firebase Console.";
       case "auth/popup-closed-by-user":
         return "Google sign-in was canceled before completion.";
       default:
@@ -38,7 +40,6 @@ export default function LoginPage() {
     }
   };
 
-  // Handle Email/Password Form Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -50,7 +51,7 @@ export default function LoginPage() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      router.push("/"); // Redirect to home page on success
+      router.push(redirectUrl);
     } catch (err: any) {
       console.error("Firebase Auth Error:", err);
       setError(getErrorMessage(err.code || ""));
@@ -59,7 +60,6 @@ export default function LoginPage() {
     }
   };
 
-  // Handle Google OAuth Sign-In
   const handleGoogleSignIn = async () => {
     setError("");
     setLoading(true);
@@ -67,7 +67,7 @@ export default function LoginPage() {
 
     try {
       await signInWithPopup(auth, provider);
-      router.push("/"); // Redirect to home page on success
+      router.push(redirectUrl);
     } catch (err: any) {
       console.error("Google Auth Error:", err);
       setError(getErrorMessage(err.code || ""));
@@ -82,14 +82,14 @@ export default function LoginPage() {
         
         {/* Header */}
         <div className="text-center mb-6">
-          <p className="text-xs font-semibold text-orange-600 tracking-wider uppercase">
+          <p className="text-xs font-semibold text-[#e8647c] tracking-wider uppercase">
             {isSignUp ? "Create Account" : "Welcome Back"}
           </p>
           <h1 className="text-2xl font-bold text-gray-900 mt-1">
-            {isSignUp ? "Sign up for SweetStudio" : "Sign in to your account"}
+            {isSignUp ? "Sign up for Shreya's Home Bakery" : "Sign in to your account"}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Use Google or email to continue shopping.
+            Use Google or email to continue to your account.
           </p>
         </div>
 
@@ -98,7 +98,7 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -139,7 +139,7 @@ export default function LoginPage() {
               setIsSignUp(false);
               setError("");
             }}
-            className={`py-2 rounded-md transition-all ${
+            className={`py-2 rounded-md transition-all cursor-pointer ${
               !isSignUp ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -151,7 +151,7 @@ export default function LoginPage() {
               setIsSignUp(true);
               setError("");
             }}
-            className={`py-2 rounded-md transition-all ${
+            className={`py-2 rounded-md transition-all cursor-pointer ${
               isSignUp ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -169,7 +169,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#e8647c]"
             />
           </div>
 
@@ -181,7 +181,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#e8647c]"
             />
           </div>
 
@@ -196,7 +196,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-50 mt-2"
+            className="w-full py-2.5 px-4 bg-[#e8647c] hover:bg-[#d5526a] text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-50 mt-2 cursor-pointer"
           >
             {loading ? "Processing..." : isSignUp ? "Create Account" : "Sign In"}
           </button>
@@ -204,5 +204,17 @@ export default function LoginPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="h-10 w-10 rounded-full border-4 border-rose border-t-transparent animate-spin" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

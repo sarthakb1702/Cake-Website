@@ -15,7 +15,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-4">
               <span className="font-display text-2xl font-black">
-                Crumb <span className="text-blush">&</span> Co.
+                Shreya's <span className="text-blush">Home</span> Bakery
               </span>
               <RotatingStamp className="h-14 w-14 text-blush" />
             </div>
@@ -59,7 +59,7 @@ export function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col gap-3 border-t border-cream-white/10 py-7 text-xs text-cream-white/45 sm:flex-row sm:justify-between">
-          <p>© 2026 Crumb & Co. All rights reserved.</p>
+          <p>© 2026 Shreya's Home Bakery. All rights reserved.</p>
           <p>Privacy · Terms · Cookies</p>
         </div>
       </div>
@@ -69,7 +69,7 @@ export function Footer() {
         className="pointer-events-none -mb-4 text-center font-display text-[clamp(3.4rem,15vw,13rem)] leading-none font-black tracking-tighter text-transparent select-none"
         style={{ WebkitTextStroke: "1px color-mix(in oklab, white 16%, transparent)" }}
       >
-        Crumb & Co.
+        Shreya's Home Bakery
       </p>
     </footer>
   );

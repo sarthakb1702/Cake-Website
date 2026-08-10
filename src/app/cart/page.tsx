@@ -277,7 +277,7 @@ export default function CartPage() {
   const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true);
     try {
-      const element = invoiceRef.current || document.getElementById("order-invoice-receipt");
+      const element = document.getElementById("invoice-pdf") || invoiceRef.current || document.getElementById("order-invoice-receipt");
       if (!element) {
         window.print();
         setIsGeneratingPDF(false);
@@ -287,30 +287,43 @@ export default function CartPage() {
       const html2canvas = (await import("html2canvas")).default;
       const { jsPDF } = await import("jspdf");
 
-      // Render ONLY the receipt card element
+      // Capture ONLY the isolated invoice-pdf receipt card container
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        backgroundColor: "#FFFDF9",
+        backgroundColor: "#ffffff",
         logging: false,
         windowWidth: element.scrollWidth,
       });
 
       const imgData = canvas.toDataURL("image/png");
 
-      // Calculate single-page dynamic dimensions (210mm A4 width with 10mm padding on left/right)
-      const pdfWidth = 210;
-      const contentWidth = 190;
-      const contentHeight = (canvas.height * contentWidth) / canvas.width;
-      const pdfHeight = Math.max(contentHeight + 20, 297);
-
+      // Standard A4 Portrait PDF Dimensions: 210mm x 297mm
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: [pdfWidth, pdfHeight],
+        format: "a4",
       });
 
-      pdf.addImage(imgData, "PNG", 10, 10, contentWidth, contentHeight);
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+      const margin = 10;
+      const maxContentWidth = pdfWidth - margin * 2; // 190mm
+      const maxContentHeight = pdfHeight - margin * 2; // 277mm
+
+      let contentWidth = maxContentWidth;
+      let contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+      // Scale down proportionally to ensure clean single-page A4 fit without page breaks
+      if (contentHeight > maxContentHeight) {
+        contentHeight = maxContentHeight;
+        contentWidth = (canvas.width * contentHeight) / canvas.height;
+      }
+
+      const xPos = (pdfWidth - contentWidth) / 2;
+      const yPos = margin;
+
+      pdf.addImage(imgData, "PNG", xPos, yPos, contentWidth, contentHeight);
       pdf.save(`Invoice_${completedOrder?.orderId.replace("#", "") || "receipt"}.pdf`);
     } catch (err) {
       console.error("PDF generation failed, launching print dialog:", err);
@@ -368,9 +381,35 @@ export default function CartPage() {
   if (orderPlaced && completedOrder) {
     return (
       <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-4 md:p-8">
+        <style jsx global>{`
+          @media print {
+            header, nav, footer, .no-print {
+              display: none !important;
+            }
+            body {
+              background: #ffffff !important;
+            }
+            #invoice-pdf {
+              visibility: visible !important;
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 24px !important;
+              box-shadow: none !important;
+              border: 1px solid #e5e7eb !important;
+              background: #ffffff !important;
+            }
+            #invoice-pdf * {
+              visibility: visible !important;
+            }
+          }
+        `}</style>
+
         <div className="max-w-2xl w-full space-y-6">
-          {/* Header Banner */}
-          <div className="bg-card p-6 md:p-8 rounded-[2.5rem] border border-border text-center shadow-lift space-y-3">
+          {/* Header Banner - Excluded from PDF */}
+          <div className="bg-card p-6 md:p-8 rounded-[2.5rem] border border-border text-center shadow-lift space-y-3 no-print">
             <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-pistachio/40 text-chocolate mx-auto">
               <CheckCircle2 className="h-9 w-9 text-chocolate" />
             </span>
@@ -382,9 +421,9 @@ export default function CartPage() {
             </p>
           </div>
 
-          {/* Itemized Printable Receipt Card */}
+          {/* Itemized Printable Receipt Card - Target element for PDF */}
           <div
-            id="order-invoice-receipt"
+            id="invoice-pdf"
             ref={invoiceRef}
             className="bg-card p-6 md:p-8 rounded-[2.5rem] border border-border shadow-soft space-y-6 text-chocolate"
           >
@@ -496,8 +535,8 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          {/* Action Buttons - Excluded from PDF */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2 no-print">
             <button
               onClick={handleDownloadPDF}
               disabled={isGeneratingPDF}

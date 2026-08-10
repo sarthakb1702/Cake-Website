@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -34,6 +35,9 @@ export async function POST(request: NextRequest) {
         finalUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
       }
     }
+
+    revalidatePath("/");
+    revalidatePath("/admin/gallery");
 
     return NextResponse.json({
       success: true,

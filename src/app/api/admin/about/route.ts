@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -80,6 +81,9 @@ export async function PUT(request: NextRequest) {
       photo2,
       updatedAt: new Date().toISOString(),
     };
+
+    revalidatePath("/");
+    revalidatePath("/admin/about");
 
     return NextResponse.json({
       success: true,

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useProductsStore, getStoredProducts } from "./products-store";
 import { Product } from "@/types";
 
@@ -33,7 +35,7 @@ export function saveBestsellerIds(ids: string[]): void {
 
 export function useBestsellersStore() {
   const { products } = useProductsStore();
-  const [bestsellerIds, setBestsellerIds] = useState<string[]>([]);
+  const [bestsellerIds, setBestsellerIds] = useState<string[]>(getBestsellerIds());
 
   useEffect(() => {
     setBestsellerIds(getBestsellerIds());
@@ -44,11 +46,45 @@ export function useBestsellersStore() {
 
     window.addEventListener("bestsellers-updated", handleUpdate);
     window.addEventListener("products-updated", handleUpdate);
+
+    // Real-Time Firestore Sync Listener for Bestsellers
+    let unsubscribe = () => {};
+    try {
+      const docRef = doc(db, "settings", "bestsellers");
+      unsubscribe = onSnapshot(
+        docRef,
+        (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (Array.isArray(data.bestsellerIds)) {
+              setBestsellerIds(data.bestsellerIds);
+              saveBestsellerIds(data.bestsellerIds);
+            }
+          }
+        },
+        (err) => {
+          console.warn("Firestore bestsellers listener notice:", err);
+        }
+      );
+    } catch (e) {
+      console.warn("Could not subscribe to Firestore bestsellers:", e);
+    }
+
     return () => {
       window.removeEventListener("bestsellers-updated", handleUpdate);
       window.removeEventListener("products-updated", handleUpdate);
+      unsubscribe();
     };
   }, []);
+
+  const syncToFirestore = async (ids: string[]) => {
+    try {
+      const docRef = doc(db, "settings", "bestsellers");
+      await setDoc(docRef, { bestsellerIds: ids, updatedAt: new Date().toISOString() }, { merge: true });
+    } catch (e) {
+      console.warn("Error saving bestsellers to Firestore:", e);
+    }
+  };
 
   const bestsellerProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
@@ -70,17 +106,20 @@ export function useBestsellersStore() {
 
   const setBestsellers = (newIds: string[]) => {
     saveBestsellerIds(newIds);
+    syncToFirestore(newIds);
   };
 
   const addBestseller = (productId: string) => {
     if (bestsellerIds.includes(productId)) return;
     const updated = [...bestsellerIds, productId];
     saveBestsellerIds(updated);
+    syncToFirestore(updated);
   };
 
   const removeBestseller = (productId: string) => {
     const updated = bestsellerIds.filter((id) => id !== productId);
     saveBestsellerIds(updated);
+    syncToFirestore(updated);
   };
 
   const moveBestseller = (fromIndex: number, toIndex: number) => {
@@ -89,6 +128,7 @@ export function useBestsellersStore() {
     const [moved] = updated.splice(fromIndex, 1);
     updated.splice(toIndex, 0, moved);
     saveBestsellerIds(updated);
+    syncToFirestore(updated);
   };
 
   return {

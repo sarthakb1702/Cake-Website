@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { gallery as DEFAULT_GALLERY } from "@/lib/site-data";
 
 export interface GalleryItem {
@@ -39,32 +41,71 @@ export function saveGallery(data: GalleryItem[]): void {
 }
 
 export function useGalleryStore() {
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(INITIAL_GALLERY_ITEMS);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(getStoredGallery());
 
   useEffect(() => {
     setGalleryItems(getStoredGallery());
     const handleUpdate = () => setGalleryItems(getStoredGallery());
     window.addEventListener("gallery-data-updated", handleUpdate);
-    return () => window.removeEventListener("gallery-data-updated", handleUpdate);
+
+    // Real-Time Firestore Sync Listener for Gallery
+    let unsubscribe = () => {};
+    try {
+      const docRef = doc(db, "settings", "gallery");
+      unsubscribe = onSnapshot(
+        docRef,
+        (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (Array.isArray(data.items) && data.items.length > 0) {
+              setGalleryItems(data.items);
+              saveGallery(data.items);
+            }
+          }
+        },
+        (err) => {
+          console.warn("Firestore gallery listener notice:", err);
+        }
+      );
+    } catch (e) {
+      console.warn("Could not subscribe to Firestore gallery:", e);
+    }
+
+    return () => {
+      window.removeEventListener("gallery-data-updated", handleUpdate);
+      unsubscribe();
+    };
   }, []);
+
+  const syncToFirestore = async (items: GalleryItem[]) => {
+    try {
+      const docRef = doc(db, "settings", "gallery");
+      await setDoc(docRef, { items, updatedAt: new Date().toISOString() }, { merge: true });
+    } catch (e) {
+      console.warn("Error saving gallery to Firestore:", e);
+    }
+  };
 
   const addGalleryItem = (item: Omit<GalleryItem, "id">) => {
     const current = getStoredGallery();
     const newItem: GalleryItem = { ...item, id: `gal-${Date.now()}` };
     const updated = [newItem, ...current];
     saveGallery(updated);
+    syncToFirestore(updated);
   };
 
   const updateGalleryItem = (id: string, updatedFields: Partial<GalleryItem>) => {
     const current = getStoredGallery();
     const updated = current.map((g) => (g.id === id ? { ...g, ...updatedFields } : g));
     saveGallery(updated);
+    syncToFirestore(updated);
   };
 
   const deleteGalleryItem = (id: string) => {
     const current = getStoredGallery();
     const updated = current.filter((g) => g.id !== id);
     saveGallery(updated);
+    syncToFirestore(updated);
   };
 
   return { galleryItems, addGalleryItem, updateGalleryItem, deleteGalleryItem };

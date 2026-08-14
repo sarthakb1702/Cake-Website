@@ -450,7 +450,7 @@ function AdminDashboardContent() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-chocolate uppercase tracking-wider mb-1">
                       Category
@@ -615,7 +615,7 @@ function AdminDashboardContent() {
                   return (
                     <div
                       key={p.id}
-                      className="bg-card p-4 rounded-[2rem] border border-border flex items-center justify-between gap-4 shadow-soft"
+                      className="bg-card p-4 rounded-[2rem] border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-soft"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-16 h-16 bg-cream rounded-2xl overflow-hidden flex-shrink-0 border border-border">

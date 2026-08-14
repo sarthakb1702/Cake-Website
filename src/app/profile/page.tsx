@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { User, Phone, MapPin, Building, Mail, Save, CheckCircle, LogOut } from "lucide-react";
+import Link from "next/link";
+import { User, Phone, MapPin, Building, Mail, Save, CheckCircle, LogOut, Shield } from "lucide-react";
 
 export default function ProfilePage() {
-  const { currentUser, userProfile, updateUserProfile, signOutUser, loading } = useAuth();
+  const { currentUser, userRole, userProfile, updateUserProfile, signOutUser, loading } = useAuth();
   const router = useRouter();
 
   const [fullName, setFullName] = useState("");
@@ -77,16 +78,27 @@ export default function ProfilePage() {
                 Manage your personal information & saved delivery address.
               </p>
             </div>
-            <button
-              onClick={async () => {
-                await signOutUser();
-                router.push("/");
-              }}
-              className="flex items-center gap-2 rounded-full border border-border bg-cream px-4 py-2 text-xs font-bold text-chocolate hover:bg-blush transition-colors cursor-pointer"
-            >
-              <LogOut className="h-3.5 w-3.5 text-rose" />
-              Sign Out
-            </button>
+            <div className="flex items-center gap-2">
+              {userRole === "admin" && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1.5 rounded-full border border-butter bg-butter/40 px-3.5 py-2 text-xs font-bold text-chocolate hover:bg-butter transition-colors"
+                >
+                  <Shield className="h-3.5 w-3.5 text-chocolate shrink-0" />
+                  <span>Admin Panel</span>
+                </Link>
+              )}
+              <button
+                onClick={async () => {
+                  await signOutUser();
+                  router.push("/");
+                }}
+                className="flex items-center gap-2 rounded-full border border-border bg-cream px-4 py-2 text-xs font-bold text-chocolate hover:bg-blush transition-colors cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5 text-rose" />
+                Sign Out
+              </button>
+            </div>
           </div>
 
           {savedSuccess && (

@@ -150,15 +150,15 @@ export function Navbar() {
           )}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3 md:gap-4">
+        <div className="ml-auto flex items-center gap-2.5 sm:gap-4">
           {/* Admin Panel shortcut */}
           {!isAdminRoute && currentUser && userRole === "admin" && (
             <Link
               href="/admin"
-              className="hidden md:flex items-center gap-1.5 rounded-full bg-butter/30 px-3.5 py-2 text-xs font-bold text-chocolate border border-butter/60 hover:bg-butter transition-colors"
+              className="flex items-center gap-1.5 rounded-full bg-butter/40 px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold text-chocolate border border-butter hover:bg-butter transition-colors shadow-xs shrink-0"
             >
-              <Shield className="h-3.5 w-3.5 text-chocolate" />
-              Admin Panel
+              <Shield className="h-3.5 w-3.5 text-chocolate shrink-0" />
+              <span>Admin Panel</span>
             </Link>
           )}
 
@@ -206,11 +206,11 @@ export function Navbar() {
             <button
               type="button"
               onClick={handleLogout}
-              className="hidden md:flex items-center gap-1.5 rounded-full bg-card px-3.5 py-2 text-xs font-bold text-chocolate border border-border hover:bg-blush transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold text-chocolate border border-border hover:bg-blush transition-colors cursor-pointer"
               title="Log Out"
             >
               <LogOut className="h-3.5 w-3.5 text-rose" />
-              Logout
+              <span>Logout</span>
             </button>
           )}
 
@@ -247,7 +247,37 @@ export function Navbar() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <nav className="mt-8 flex flex-col gap-3">
+
+            <nav className="mt-6 flex flex-col gap-3">
+              {/* Admin Panel Link inside Mobile Drawer */}
+              {currentUser && userRole === "admin" && (
+                <motion.div
+                  initial={{ opacity: 0, x: -18 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="mb-2"
+                >
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-between rounded-2xl bg-chocolate px-5 py-3.5 text-cream-white shadow-lift border border-chocolate/80 hover:bg-rose transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Shield className="h-6 w-6 text-butter shrink-0" />
+                      <div>
+                        <span className="block font-display text-xl font-black uppercase leading-tight">
+                          Admin Dashboard
+                        </span>
+                        <span className="block text-[11px] font-semibold text-butter uppercase tracking-wider">
+                          CMS & Store Operations
+                        </span>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-rose px-2.5 py-0.5 text-[10px] font-bold text-white uppercase">
+                      Admin
+                    </span>
+                  </Link>
+                </motion.div>
+              )}
               {isAdminRoute
                 ? adminLinks.map((l, i) => (
                     <motion.div

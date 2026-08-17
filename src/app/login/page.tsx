@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider 
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, googleProvider } from "@/lib/firebase";
 
 function LoginContent() {
   const router = useRouter();
@@ -20,6 +22,20 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getRedirectResult(auth).then((result) => {
+      if (result?.user) {
+        // Successfully signed in via redirect on mobile
+        router.push(redirectUrl);
+      }
+    }).catch((error: any) => {
+      console.error("Redirect Error:", error);
+      if (error?.code) {
+        setError(getErrorMessage(error.code));
+      }
+    });
+  }, [router, redirectUrl]);
 
   const getErrorMessage = (code: string) => {
     switch (code) {
@@ -63,14 +79,19 @@ function LoginContent() {
   const handleGoogleSignIn = async () => {
     setError("");
     setLoading(true);
-    const provider = new GoogleAuthProvider();
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const provider = googleProvider || new GoogleAuthProvider();
 
     try {
-      await signInWithPopup(auth, provider);
-      router.push(redirectUrl);
-    } catch (err: any) {
-      console.error("Google Auth Error:", err);
-      setError(getErrorMessage(err.code || ""));
+      if (isMobile) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+        router.push(redirectUrl);
+      }
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+      setError(getErrorMessage(error.code || ""));
     } finally {
       setLoading(false);
     }

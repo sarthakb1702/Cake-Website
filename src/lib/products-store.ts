@@ -32,7 +32,7 @@ export function saveProducts(products: Product[]): void {
 }
 
 export function useProductsStore() {
-  const [products, setProducts] = useState<Product[]>(getStoredProducts());
+  const [products, setProducts] = useState<Product[]>(initialProducts);
 
   useEffect(() => {
     setProducts(getStoredProducts());

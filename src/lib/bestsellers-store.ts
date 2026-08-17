@@ -35,7 +35,7 @@ export function saveBestsellerIds(ids: string[]): void {
 
 export function useBestsellersStore() {
   const { products } = useProductsStore();
-  const [bestsellerIds, setBestsellerIds] = useState<string[]>(getBestsellerIds());
+  const [bestsellerIds, setBestsellerIds] = useState<string[]>([]);
 
   useEffect(() => {
     setBestsellerIds(getBestsellerIds());
